@@ -23,6 +23,10 @@ body {
   color: var(--ink);
 }
 
+body.is-lightbox-open {
+  overflow: hidden;
+}
+
 button,
 a {
   font: inherit;
@@ -340,6 +344,7 @@ h3 {
 }
 
 .section {
+  scroll-margin-top: 92px;
   max-width: 1180px;
   margin: 0 auto;
   padding: 96px 34px;
@@ -521,6 +526,7 @@ details p,
 }
 
 .visual-band {
+  scroll-margin-top: 92px;
   display: grid;
   grid-template-columns: minmax(260px, 360px) 1fr;
   gap: 28px;
@@ -552,12 +558,23 @@ details p,
 }
 
 .visual-rail figure {
+  position: relative;
   scroll-snap-align: start;
   margin: 0;
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 8px;
   background: #fff;
   overflow: hidden;
+  transition:
+    border-color 180ms ease,
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.visual-rail figure:hover {
+  transform: translateY(-6px);
+  border-color: rgba(248, 200, 0, 0.82);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
 }
 
 .visual-rail img {
@@ -569,10 +586,40 @@ details p,
 }
 
 .visual-rail figcaption {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+  min-height: 74px;
   padding: 14px;
   color: #111;
   font-weight: 700;
   line-height: 1.25;
+}
+
+.visual-rail figcaption button,
+.lightbox-close,
+.lightbox-nav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+}
+
+.visual-rail figcaption button {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: #111;
+  color: #fff;
+  transition:
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+.visual-rail figcaption button:hover {
+  transform: scale(1.06);
+  background: var(--red);
 }
 
 .filter-group {
@@ -729,6 +776,91 @@ details p {
   white-space: nowrap;
 }
 
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 32px 92px;
+  background: rgba(0, 0, 0, 0.82);
+  backdrop-filter: blur(12px);
+}
+
+.lightbox figure {
+  display: grid;
+  gap: 14px;
+  width: min(1120px, 100%);
+  max-height: 92vh;
+  margin: 0;
+}
+
+.lightbox img {
+  display: block;
+  width: 100%;
+  max-height: calc(92vh - 78px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background: #fff;
+  object-fit: contain;
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.44);
+}
+
+.lightbox figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 750;
+  line-height: 1.25;
+}
+
+.lightbox figcaption span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--yellow);
+  color: #111;
+  font-size: 13px;
+}
+
+.lightbox-close,
+.lightbox-nav {
+  position: fixed;
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #111;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.22);
+  transition:
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+.lightbox-close:hover,
+.lightbox-nav:hover {
+  transform: scale(1.06);
+  background: var(--yellow);
+}
+
+.lightbox-close {
+  top: 24px;
+  right: 24px;
+}
+
+.lightbox-prev {
+  left: 24px;
+}
+
+.lightbox-next {
+  right: 24px;
+}
+
 @media (max-width: 1080px) {
   .site-header {
     grid-template-columns: 1fr auto;
@@ -857,5 +989,36 @@ details p {
   .site-footer div {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .lightbox {
+    padding: 70px 14px 24px;
+  }
+
+  .lightbox figure {
+    max-height: 86vh;
+  }
+
+  .lightbox img {
+    max-height: calc(86vh - 86px);
+  }
+
+  .lightbox-close {
+    top: 14px;
+    right: 14px;
+  }
+
+  .lightbox-nav {
+    top: 50%;
+    width: 42px;
+    height: 42px;
+  }
+
+  .lightbox-prev {
+    left: 10px;
+  }
+
+  .lightbox-next {
+    right: 10px;
   }
 }

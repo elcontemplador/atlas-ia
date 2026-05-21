@@ -1,8 +1,10 @@
-import { useMemo, useState } from 'react'
+import { type MouseEvent, useEffect, useMemo, useState } from 'react'
 import {
   ArrowUpRight,
   BrainCircuit,
   Building2,
+  ChevronLeft,
+  ChevronRight,
   CheckCircle2,
   Database,
   Eye,
@@ -19,6 +21,8 @@ import {
   ShieldCheck,
   Sparkles,
   UsersRound,
+  X,
+  ZoomIn,
 } from 'lucide-react'
 import './App.css'
 import {
@@ -53,6 +57,7 @@ function App() {
   const [activeLayer, setActiveLayer] = useState(layers[0].id)
   const [activeScenario, setActiveScenario] = useState(scenarios[1].id)
   const [axisFilter, setAxisFilter] = useState<AxisId | 'todos'>('todos')
+  const [activeVisual, setActiveVisual] = useState<number | null>(null)
   const currentScenario =
     scenarios.find((scenario) => scenario.id === activeScenario) ?? scenarios[1]
 
@@ -64,17 +69,104 @@ function App() {
     return measures.filter((measure) => measure.axis === axisFilter)
   }, [axisFilter])
 
+  const scrollToSection = (event: MouseEvent<HTMLAnchorElement>, id: string) => {
+    event.preventDefault()
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    window.history.replaceState(null, '', `#${id}`)
+  }
+
+  const showPreviousVisual = () => {
+    setActiveVisual((current) => {
+      if (current === null) {
+        return visuals.length - 1
+      }
+
+      return current === 0 ? visuals.length - 1 : current - 1
+    })
+  }
+
+  const showNextVisual = () => {
+    setActiveVisual((current) => {
+      if (current === null) {
+        return 0
+      }
+
+      return current === visuals.length - 1 ? 0 : current + 1
+    })
+  }
+
+  useEffect(() => {
+    const initialId = window.location.hash.replace('#', '')
+
+    if (!initialId) {
+      return
+    }
+
+    const scrollTimer = window.setTimeout(() => {
+      document.getElementById(initialId)?.scrollIntoView({
+        behavior: 'instant',
+        block: 'start',
+      })
+    }, 80)
+
+    return () => window.clearTimeout(scrollTimer)
+  }, [])
+
+  useEffect(() => {
+    if (activeVisual === null) {
+      return
+    }
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setActiveVisual(null)
+      }
+
+      if (event.key === 'ArrowLeft') {
+        showPreviousVisual()
+      }
+
+      if (event.key === 'ArrowRight') {
+        showNextVisual()
+      }
+    }
+
+    document.body.classList.add('is-lightbox-open')
+    window.addEventListener('keydown', onKeyDown)
+
+    return () => {
+      document.body.classList.remove('is-lightbox-open')
+      window.removeEventListener('keydown', onKeyDown)
+    }
+  }, [activeVisual])
+
   return (
     <main>
       <header className="site-header" aria-label="Cabecera institucional">
-        <a className="brand" href="#inicio" aria-label="Volver al inicio">
+        <a
+          className="brand"
+          href="#inicio"
+          aria-label="Volver al inicio"
+          onClick={(event) => scrollToSection(event, 'inicio')}
+        >
           <img src={asset('atlas/brand/sedia-logo.png')} alt="SEDIA" />
         </a>
         <nav aria-label="Navegación principal">
-          <a href="#mapa">Mapa</a>
-          <a href="#espana">España</a>
-          <a href="#medidas">Medidas</a>
-          <a href="#evidencias">Evidencias</a>
+          <a href="#mapa" onClick={(event) => scrollToSection(event, 'mapa')}>
+            Mapa
+          </a>
+          <a href="#espana" onClick={(event) => scrollToSection(event, 'espana')}>
+            España
+          </a>
+          <a href="#medidas" onClick={(event) => scrollToSection(event, 'medidas')}>
+            Medidas
+          </a>
+          <a
+            href="#evidencias"
+            onClick={(event) => scrollToSection(event, 'evidencias')}
+          >
+            Evidencias
+          </a>
         </nav>
         <span className="draft-pill">
           <LockKeyhole size={15} />
@@ -95,11 +187,19 @@ function App() {
               talento, empresas, sector público, derechos y soberanía digital.
             </p>
             <div className="hero-actions" aria-label="Acciones principales">
-              <a className="primary-action" href="#mapa">
+              <a
+                className="primary-action"
+                href="#mapa"
+                onClick={(event) => scrollToSection(event, 'mapa')}
+              >
                 Explorar el mapa
                 <ArrowUpRight size={18} />
               </a>
-              <a className="secondary-action" href="#medidas">
+              <a
+                className="secondary-action"
+                href="#medidas"
+                onClick={(event) => scrollToSection(event, 'medidas')}
+              >
                 Ver medidas
               </a>
             </div>
@@ -239,7 +339,16 @@ function App() {
           {visuals.map((visual) => (
             <figure key={visual.src}>
               <img src={asset(visual.src)} alt={visual.title} />
-              <figcaption>{visual.title}</figcaption>
+              <figcaption>
+                <span>{visual.title}</span>
+                <button
+                  aria-label={`Ampliar ${visual.title}`}
+                  onClick={() => setActiveVisual(visuals.indexOf(visual))}
+                  type="button"
+                >
+                  <ZoomIn size={17} />
+                </button>
+              </figcaption>
             </figure>
           ))}
         </div>
@@ -343,6 +452,56 @@ function App() {
           </span>
         </div>
       </footer>
+
+      {activeVisual !== null && (
+        <div
+          aria-modal="true"
+          className="lightbox"
+          onClick={() => setActiveVisual(null)}
+          role="dialog"
+        >
+          <button
+            aria-label="Cerrar imagen ampliada"
+            className="lightbox-close"
+            onClick={() => setActiveVisual(null)}
+            type="button"
+          >
+            <X size={22} />
+          </button>
+          <button
+            aria-label="Imagen anterior"
+            className="lightbox-nav lightbox-prev"
+            onClick={(event) => {
+              event.stopPropagation()
+              showPreviousVisual()
+            }}
+            type="button"
+          >
+            <ChevronLeft size={26} />
+          </button>
+          <figure onClick={(event) => event.stopPropagation()}>
+            <img
+              src={asset(visuals[activeVisual].src)}
+              alt={visuals[activeVisual].title}
+            />
+            <figcaption>
+              <span>{activeVisual + 1} / {visuals.length}</span>
+              {visuals[activeVisual].title}
+            </figcaption>
+          </figure>
+          <button
+            aria-label="Imagen siguiente"
+            className="lightbox-nav lightbox-next"
+            onClick={(event) => {
+              event.stopPropagation()
+              showNextVisual()
+            }}
+            type="button"
+          >
+            <ChevronRight size={26} />
+          </button>
+        </div>
+      )}
     </main>
   )
 }
