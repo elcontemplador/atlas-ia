@@ -1,7 +1,6 @@
 # Atlas de la IA - micrositio SEDIA
 
-Prototipo web estático para revisión interna. Convierte el documento `Atlas de la IA - consolidado.docx` en una experiencia visual e interactiva para audiencia SEDIA.
-
+Prototipo web estático para revisión interna. Convierte el documento `Atlas de la IA - consolidado.docx` en una experiencia visual e interactiva
 ## Uso local
 
 ```bash
